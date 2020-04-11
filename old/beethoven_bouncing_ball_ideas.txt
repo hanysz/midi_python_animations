@@ -1,0 +1,25 @@
+Top part of the screen: balls falling vertically under gravity
+  A separate ball for each key
+  Data: 88 arrays of note onset times
+  To draw at time t:
+    go through all 88 arrays
+    binary search to find the previous and next notes for time t
+    calculate whether the ball should be on screen, and the height
+
+   Parameters:
+     g -- acceleration due to gravity
+     frame height (top of the frame should be just off the screen)
+     and then use this to calculate on screen time (top of frame to key based on g)
+
+
+Bottom part of the screen: side view of piano keyboard
+  When a ball hits a key, it goes down and stays down for the note-on duration,
+  and also lights up (brightness = key velocity)
+    -- lighting up is needed so that black keys don't just disappear
+
+Keyboard size: http://www.quadibloc.com/other/cnv05.htm
+Lazy measurements on my piano:
+  white keys 25 mm wide
+  black keys 10mm wide
+  C# offset 7mm
+  F# offset 8mm

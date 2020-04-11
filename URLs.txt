@@ -1,0 +1,34 @@
+Python MIDI libraries
+  https://github.com/bspaans/python-mingus -- avoid, too wrapped up in identifying chords etc and midi support is an afterthought, e.g. struggles with legatissimo
+  https://code.google.com/archive/p/midiutil/
+  http://old.mxm.dk/products/public/pythonmidi/
+  https://pypi.python.org/pypi/midi
+  https://github.com/vishnubob/python-midi with some instructions at http://cmc.music.columbia.edu/courses/g6602/spring2014/Python/install_python.shtml
+  https://pypi.python.org/pypi/midiparser/12.02.03
+
+  mido:
+    https://github.com/olemb/mido/
+    https://mido.readthedocs.io/en/latest/
+    https://pypi.python.org/pypi/mido
+
+Python animation
+  pygame -- simple intro at https://inventwithpython.com/chapter17.html
+  matplotlib
+  vpython? examples at http://linuxgazette.net/144/john.html Requires Wine???
+  pymedia for stitching frames together into a video
+    or call ffmpeg?
+  PIL = python image library for capturing frames: example at http://www.faculty.umassd.edu/j.wang/vp/movie.htm
+
+  pymedia is too old to build/install!
+  Alternatives: pyffmpeg or pymovie or moviepy or ffmpy
+  Also this interesting article on driving ffmpeg from python directly:
+    http://zulko.github.io/blog/2013/09/27/read-and-write-video-frames-in-python-using-ffmpeg/
+  Let's try moviepy first
+    http://zulko.github.io/moviepy/index.html
+
+pygame very short intro: http://www.onlamp.com/excerpt/gmhks2_1004/
+
+MIDI file format specifications:
+  http://www.music.mcgill.ca/~ich/classes/mumt306/StandardMIDIfileformat.html
+  http://cs.fit.edu/~ryan/cse4051/projects/midi/midi.html
+  http://www.somascape.org/midi/tech/mfile.html

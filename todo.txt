@@ -1,0 +1,34 @@
+Multimedia:
+  fix the "integer rounding wobbles"
+  play midi through a port (e.g. to PianoTeq)
+  play audio, with parameters for delay/sync -- done
+  mix down to video -- done
+  transparency and/or additive colours
+    use surface blitting? http://stackoverflow.com/questions/601776/what-do-the-blend-modes-in-pygame-mean
+    instead of pygame.draw.ellips(screen, ...)
+    want
+      create tempSurface
+      pygame.draw.ellipse(tempSurface, ...)
+      screen.blit(tempSurface, dest, None, pygame.BLEND_ADD)
+        dest is either (x, y) or a rect
+	None is the area to draw on (None really means all!)
+
+Code:
+  precompute static visual properties for note, e.g. y-coordinate
+  refactor as a module?
+  fetch parameters from text configuration file, e.g. using PyYAML?
+  fetch PPQN programmatically -- done
+  
+  http://www.learnpython.org/en/Modules_and_Packages
+  http://stackoverflow.com/questions/2038313/midi-ticks-to-actual-playback-seconds-midi-music
+  http://stackoverflow.com/questions/3087277/what-is-the-structure-of-a-midi-file?rq=1
+
+  interactive UI? with drawing modules from plugin folder?
+    classes for note, chord, link, links_out, links_in?
+
+Visuals
+  piano roll with circles
+  circles moving in curved paths, changing size to get "closer"
+  bouncing ball
+  "organic" paths (drifting)
+  ripples (how do I show the length and velocity?)
