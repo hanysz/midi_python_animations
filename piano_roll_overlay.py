@@ -5,42 +5,18 @@ from __future__ import division # so that a/b for integers evaluates as floating
 # (typically the background file would be the theme repeated,
 #   and the foreground file has the variations)
 
-# Remove pyglet -- in the updated package, seeking isn't working properly
-#  (sound and video get nearly a second out of sync)
-#  so the benefit of being able to seek doesn't justify the complexity of the code
-
-# To do: figure out why foreground and background are out of alignment -- is it the MIDI files or the code?
-# To do: revise to colour by channels not tracks -- this is easier now I'm working with Reaper
-
 import pygame, sys, subprocess, os, time, mido
 from pygame.locals import *
 from moviepy.editor import *
-import math # we'll need square roots
 from bisect import bisect_left
 
 MODE = 'play' # Display the animation on screen in real time
-#MODE = 'save' # Save the output to a video file instead of displaying on screen
+MODE = 'save' # Save the output to a video file instead of displaying on screen
 
 LOWEST_NOTE = 25 # midi note number of the bottom of the screen
 HIGHEST_NOTE = 108
-
-#from settings.rach_prelude_D import *
-
-#from settings.beethoven_op81a import *
-#from settings.scarlatti_K440 import *
-#execfile("settings/scarlatti_K440.py")
-
-# Python3 no longer has "execfile":
-settings_file = "settings/haydn_vars_fmin.py"
-exec(compile(open(settings_file).read(), settings_file, 'exec'))
-# initial test: put the first 30 seconds of music on top of a different bit of MIDI
-
-SCROLL_OFFSET = SCROLL_TIME - PAGE_STARTS[-2]
-# time from start of last page to start of scrolling
-
-# compensate for playback delay
-# not needed on a newer and faster computer?
-# AUDIO_OFFSET -= 0.3
+#COLOUR_MODE = "track" # assign colours based on track number
+COLOUR_MODE = "channel"
 
 FPS = 25 # frames per second for saved video output
 #FPS = 15 # for a fast cut of the video
@@ -49,8 +25,6 @@ HEIGHT = 720
 #HEIGHT = 397 # for a fast cut of the video
 WIDTH = int(HEIGHT * 16/9)
 CENTRE = (WIDTH/2, HEIGHT/2)
-
-NOTE_HEIGHT = HEIGHT / (HIGHEST_NOTE - LOWEST_NOTE + 1)
 
 # set up some colours
 BLACK = (0, 0, 0)
@@ -65,19 +39,24 @@ CYAN = (255, 255, 0)
 #e.g. use pygame.Color('black') instead of BLACK
 #Colour chart at https://sites.google.com/site/meticulosslacker/pygame-thecolors
 
-# List of colours to be used for different tracks of the MIDI file:
-NOTE_COLOURS = (RED, WHITE, GREEN, BLUE, YELLOW, MAGENTA, CYAN, RED)
-NUM_COLOURS = len(NOTE_COLOURS)
-
+# List of colours to be used for different tracks or channels of the MIDI file:
 BG_COLOUR = pygame.Color('darkgray')
-FG_COLOUR = pygame.Color('orange')
 FG_COLOURS = [RED, WHITE, pygame.Color('orange'), GREEN, BLUE]
-#BACKGROUND = pygame.Color('indigo') # name not recognised
-#BACKGROUND = pygame.Color('#4b0082') # This is indigo
 BACKGROUND = BLACK
 
+#from settings.rach_prelude_D import *
+#from settings.beethoven_op81a import *
+#from settings.scarlatti_K440 import *
+#execfile("settings/scarlatti_K440.py")
 
+# Python3 no longer has "execfile":
+settings_file = "settings/haydn_vars_fmin.py"
+exec(compile(open(settings_file).read(), settings_file, 'exec'))
 
+SCROLL_OFFSET = SCROLL_TIME - PAGE_STARTS[-2]
+# time from start of last page to start of scrolling
+
+NOTE_HEIGHT = HEIGHT / (HIGHEST_NOTE - LOWEST_NOTE + 1)
 
 class Note(object):
   __slots__ = ['note', 't0', 't1', 'vel', 'track', 'channel']
@@ -104,7 +83,8 @@ def draw_note(n, t, foreground):
   # else background.
   page_num = bisect_left(PAGE_STARTS, t) - 1
   if page_num < 0: # can happen if t<=0
-    page_num = 0
+    #page_num = 0
+    return
   if page_num >= len(PAGE_STARTS)-1: # scrolling takes us past the last page
     page_num = len(PAGE_STARTS)-2
 
@@ -131,7 +111,10 @@ def draw_note(n, t, foreground):
     x1_fg = min(x1_fg, x_current) # draw only the part of the note up to the current time
     y0 = (HIGHEST_NOTE - n.note) / (HIGHEST_NOTE - LOWEST_NOTE + 1) * HEIGHT
     note_fg = pygame.Rect(x0_fg, y0, x1_fg-x0_fg, NOTE_HEIGHT)
-    col = FG_COLOURS[n.track]
+    if COLOUR_MODE == "track":
+      col = FG_COLOURS[n.track]
+    else:
+      col = FG_COLOURS[n.channel]
     pygame.draw.rect(screen, col, note_fg)
 
 
@@ -194,9 +177,7 @@ def parse_midi(filename):
   return(allnotes)
 
 fg_notes = parse_midi(MIDI_FILE)
-print(len(fg_notes))
 bg_notes = parse_midi(MIDI_BACKGROUND)
-print(len(bg_notes))
 
 # At this point we have an allnotes array and can start to animate it.
 def make_frame(t):
@@ -250,10 +231,9 @@ else:
 
   animation_clip = VideoClip(make_frame, duration=LENGTH)
   titles = TextClip(TITLE_TEXT,
-    font='Segoe-Script-Regular', fontsize = 30, color = 'white'
-    #font='Segoe-Script-Regular', fontsize = 20, color = 'white'
+    font='Segoe-Script', fontsize = 30, color = 'white'
   )
-  titles = titles.set_pos('center').set_duration(8.5).fadein(3).fadeout(2.5)
+  titles = titles.set_pos('center').set_duration(8.5).fadein(3, BACKGROUND).fadeout(2.5, BACKGROUND)
   #titles = titles.set_pos('center').set_duration(5).fadein(1).fadeout(1)
   audio = AudioFileClip(WAV_FILE_TEMP)
   audio.set_start(AUDIO_OFFSET)
