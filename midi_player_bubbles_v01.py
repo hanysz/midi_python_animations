@@ -3,8 +3,8 @@ import pygame, sys, subprocess, os, time, mido
 from pygame.locals import *
 from moviepy.editor import *
 
-#MODE = 'play' # Display the animation on screen in real time
-MODE = 'save' # Save the output to a video file instead of displaying on screen
+MODE = 'play' # Display the animation on screen in real time
+#MODE = 'save' # Save the output to a video file instead of displaying on screen
 
 # Settings import moved a screen lower so it can override default colours etc if needed
 #from settings.rach_prelude_D import *

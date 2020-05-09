@@ -1,26 +1,41 @@
 from __future__ import division # so that a/b for integers evaluates as floating point
+
+# Piano roll, overlay mode: for variation form or other weird effects
+# Background = one time segment,
+# foreground can be from a different time
+
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+# Otherwise "import pygame" prints junk to the console
+
 import pygame, pyglet, sys, subprocess, os, time, mido
 from pygame.locals import *
 from moviepy.editor import *
 import math # we'll need square roots
+from bisect import bisect_left
+
+print("Audio playback only works with python3 since annoying pyglet upgrade")
 
 MODE = 'play' # Display the animation on screen in real time
 #MODE = 'save' # Save the output to a video file instead of displaying on screen
 
 #from settings.rach_prelude_D import *
-#from settings.chopin_op24_2 import *
-#from settings.beethoven_op7 import *
+
 #from settings.beethoven_op81a import *
-from settings.scarlatti_K440 import *
+#from settings.scarlatti_K440 import *
+#execfile("settings/scarlatti_K440.py")
 
+# Python3 no longer has "execfile":
+settings_file = "settings/haydn_vars_fmin.py"
+exec(compile(open(settings_file).read(), settings_file, 'exec'))
+# initial test: put the first 30 seconds of music on top of a different bit of MIDI
 
-# For testing a short range
-START_TIME = 0
-AUDIO_OFFSET -= START_TIME
-MIDI_OFFSET -= START_TIME
+FADEOUT_TIME = 0.5
+
 
 # compensate for playback delay
-AUDIO_OFFSET += 0.3
+# not needed on a newer and faster computer?
+AUDIO_OFFSET -= 0.3
 
 FPS = 25 # frames per second for saved video output
 #FPS = 15 # for a fast cut of the video
@@ -29,11 +44,6 @@ HEIGHT = 720
 #HEIGHT = 397 # for a fast cut of the video
 WIDTH = int(HEIGHT * 16/9)
 CENTRE = (WIDTH/2, HEIGHT/2)
-
-EYE_COORDS = (WIDTH/2, HEIGHT/2, 20)
-#PICTURE_PLANE = 5
-GROW_TIME = 0.6 # how many seconds it takes for notes to grow to full size before they sound
-GROWTH_FACTOR = 30 # Enhanced growth as the notes get closer
 
 LOWEST_NOTE = 25 # midi note number of the bottom of the screen
 HIGHEST_NOTE = 108
@@ -58,7 +68,7 @@ NUM_COLOURS = len(NOTE_COLOURS)
 
 BG_COLOUR = pygame.Color('darkgray')
 FG_COLOUR = pygame.Color('orange')
-FG_COLOURS = [WHITE, pygame.Color('orange'), GREEN, BLUE]
+FG_COLOURS = [WHITE, RED, pygame.Color('orange'), GREEN, BLUE]
 #BACKGROUND = pygame.Color('indigo') # name not recognised
 #BACKGROUND = pygame.Color('#4b0082') # This is indigo
 BACKGROUND = BLACK
@@ -72,10 +82,6 @@ seek_offset = 0
 osd_font = pygame.font.SysFont(None, 48)
 OSD_COLOUR = WHITE
 
-
-
-def dimmer(colour, brightness):
-  return(colour[0]*brightness, colour[1]*brightness, colour[2]*brightness)
 
 
 class Note(object):
@@ -93,60 +99,39 @@ class Note(object):
     answer += ', ch' + str(self.channel)
     return answer
 
-def oldrescale (r, z):
-  # r is a rectangle in the z = 0 plane
-  # transform so that it's z units away
-  # This is a combination of perspective view plus the note actually moving as it's played.
-  alpha = z/EYE_COORDS[2]
-  beta = (PICTURE_PLANE-z) / (EYE_COORDS[2]-z)
-  scale = 1 - beta
-  #print z, EYE_COORDS[2], alpha, beta, scale
-  r.left = (1-alpha)*(1-beta)*r.left - alpha*(1-beta)*r.width/2 \
-              + (alpha+beta-alpha*beta)*EYE_COORDS[0]
-  r.right = (1-alpha)*(1-beta)*r.right - alpha*(1-beta)*r.height/2 \
-              + (alpha+beta-alpha*beta)*EYE_COORDS[1]
-  r.width = r.width * scale
-  r.height = r.height * scale
-  return r
 
-def rescale(r, z):
-  alpha = 1-z/EYE_COORDS[2]
-  scale = (EYE_COORDS[2] / (EYE_COORDS[2]-z))
-  scale = (scale-1)*GROWTH_FACTOR + scale
-  r.left = alpha*r.left + (alpha - scale)*r.height/2 + (1-alpha)*EYE_COORDS[0]
-  r.top = alpha*r.top + (alpha - scale)*r.height/2 + (1-alpha)*EYE_COORDS[1]
-  r.width = r.width * scale
-  r.height = r.height * scale
-  return r
-
-
-def draw_note(n, t):
-  # Draw the rectangle for note n at time t.
-  # If n is actually playing at time t, draw in the foreground,
+def draw_note(n, t, foreground):
+  # Draw the rectangles for note n at time t.
+  # For the overlay effect, we'll draw both a background rectangle
+  #  and a foreground rectangle for each note.
+  # One or both of those rectangles may be off the screen
+  # If n is actually playing at time t, draw in the foreground colour,
   # else background.
-  #if t<n.t0 or t>n.t1:
-    #return
-  x0 = n.t0/LENGTH*WIDTH
-  x1 = n.t1/LENGTH*WIDTH
-  y0 = (HIGHEST_NOTE - n.note) / (HIGHEST_NOTE - LOWEST_NOTE + 1) * HEIGHT
-  z = 0
-  note = pygame.Rect(x0, y0, x1-x0, NOTE_HEIGHT)
- 
-  z_target = TRACK_PLANES[n.track]
-  GPS = z_target/GROW_TIME # GPS = growth per second
-  col = BG_COLOUR
-  if t>n.t0 and t<n.t1:
+  section_num = bisect_left(SECTION_STARTS, t) - 1
+  if section_num < 0: # can happen if t<=0
+    section_num = 0
+
+  if not foreground:
+    bg_times = BACKGROUND_TIMES[section_num]
+    bg_width  = bg_times[1]-bg_times[0]
+    x0_bg = (n.t0-bg_times[0])/bg_width*WIDTH
+    x1_bg = (n.t1-bg_times[0])/bg_width*WIDTH
+    y0 = (HIGHEST_NOTE - n.note) / (HIGHEST_NOTE - LOWEST_NOTE + 1) * HEIGHT
+    note_bg = pygame.Rect(x0_bg, y0, x1_bg-x0_bg, NOTE_HEIGHT)
+   
+    col = BG_COLOUR
+    pygame.draw.rect(screen, col, note_bg)
+
+  if foreground and t>n.t0 and t<n.t1 + FADEOUT_TIME:
+    fg_times = (SECTION_STARTS[section_num], SECTION_STARTS[section_num+1])
+    fg_width  = fg_times[1]-fg_times[0]
+
+    x0_fg = (n.t0-fg_times[0])/fg_width*WIDTH
+    x1_fg = (n.t1-fg_times[0])/fg_width*WIDTH
+    y0 = (HIGHEST_NOTE - n.note) / (HIGHEST_NOTE - LOWEST_NOTE + 1) * HEIGHT
+    note_fg = pygame.Rect(x0_fg, y0, x1_fg-x0_fg, NOTE_HEIGHT)
     col = FG_COLOURS[n.track]
-    z = z_target
-  elif t < n.t0 and t > n.t0-GROW_TIME:
-    z = (t - n.t0)*GPS + z_target
-  elif t > n.t1 and t < n.t1+GROW_TIME:
-    z = z_target - (t - n.t1)*GPS
-  pygame.draw.rect(screen, col, rescale(note, z))
-  #s = (1-z) * 4 + 1
-  #pygame.draw.rect(screen, col, note.inflate(scale, scale))
-
-
+    pygame.draw.rect(screen, col, note_fg)
 
 
 
@@ -218,7 +203,9 @@ for l in key_times:
 def make_frame(t):
     screen.fill(BACKGROUND)
     for n in allnotes:
-      draw_note(n, t-MIDI_OFFSET)
+      draw_note(n, t-MIDI_OFFSET, foreground = False)
+    for n in allnotes:
+      draw_note(n, t-MIDI_OFFSET, foreground = True)
     if show_osd:
       timetext = osd_font.render("%.1f" % (t-MIDI_OFFSET), True, OSD_COLOUR)
       textrect = timetext.get_rect()

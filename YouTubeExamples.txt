@@ -9,3 +9,20 @@ Bouncing ball: https://www.youtube.com/watch?v=1BVHK8Yh8Bc
 Musanim bumblebee: https://www.youtube.com/watch?v=cFdY-XQG4uk
 Pachelbel spiral: https://www.youtube.com/watch?v=2PFpgXym4T8
 
+Carey Meltz -- mostly using Music Animation Machine and synth sounds
+  Brandenburg 5 is a different style, software not disclosed: https://www.youtube.com/watch?v=Tc51cnV6YJI
+  Bach organ fugue in g, "pyschedelic" https://www.youtube.com/watch?v=Rup2ry0cMhk
+  "Galactic", ffmpeg zooming? https://www.youtube.com/watch?v=0_oDWV5YSZ8
+  waveform/kaleidoscope, another ffmpeg? https://www.youtube.com/watch?v=ZSt7zlXlor8
+
+SecondAgeOfReason
+  assorted fractals, not linked to the music, but maybe I could do something with this
+    https://www.youtube.com/watch?v=0_oDWV5YSZ8
+
+Andy Fillebrown -- 3D with Blender, everything looks the same
+  Windows app for sale at http://warp-score.com/
+
+Anonymous clone of music animation machine (not recently updated)
+https://github.com/zhanrnl/PyMusAnim
+Only does piano roll plus circles and lyrics
+
