@@ -1,23 +1,28 @@
 from __future__ import division # so that a/b for integers evaluates as floating point
 
 # Piano roll, overlay mode: for variation form or other weird effects
-# Background = one time segment,
-# foreground can be from a different time
+# Background and foreground from two different files
+# (typically the background file would be the theme repeated,
+#   and the foreground file has the variations)
 
-from os import environ
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
-# Otherwise "import pygame" prints junk to the console
+# Remove pyglet -- in the updated package, seeking isn't working properly
+#  (sound and video get nearly a second out of sync)
+#  so the benefit of being able to seek doesn't justify the complexity of the code
 
-import pygame, pyglet, sys, subprocess, os, time, mido
+# To do: figure out why foreground and background are out of alignment -- is it the MIDI files or the code?
+# To do: revise to colour by channels not tracks -- this is easier now I'm working with Reaper
+
+import pygame, sys, subprocess, os, time, mido
 from pygame.locals import *
 from moviepy.editor import *
 import math # we'll need square roots
 from bisect import bisect_left
 
-print("Audio playback only works with python3 since annoying pyglet upgrade")
-
 MODE = 'play' # Display the animation on screen in real time
 #MODE = 'save' # Save the output to a video file instead of displaying on screen
+
+LOWEST_NOTE = 25 # midi note number of the bottom of the screen
+HIGHEST_NOTE = 108
 
 #from settings.rach_prelude_D import *
 
@@ -30,12 +35,12 @@ settings_file = "settings/haydn_vars_fmin.py"
 exec(compile(open(settings_file).read(), settings_file, 'exec'))
 # initial test: put the first 30 seconds of music on top of a different bit of MIDI
 
-FADEOUT_TIME = 0.5
-
+SCROLL_OFFSET = SCROLL_TIME - PAGE_STARTS[-2]
+# time from start of last page to start of scrolling
 
 # compensate for playback delay
 # not needed on a newer and faster computer?
-AUDIO_OFFSET -= 0.3
+# AUDIO_OFFSET -= 0.3
 
 FPS = 25 # frames per second for saved video output
 #FPS = 15 # for a fast cut of the video
@@ -45,8 +50,6 @@ HEIGHT = 720
 WIDTH = int(HEIGHT * 16/9)
 CENTRE = (WIDTH/2, HEIGHT/2)
 
-LOWEST_NOTE = 25 # midi note number of the bottom of the screen
-HIGHEST_NOTE = 108
 NOTE_HEIGHT = HEIGHT / (HIGHEST_NOTE - LOWEST_NOTE + 1)
 
 # set up some colours
@@ -63,24 +66,16 @@ CYAN = (255, 255, 0)
 #Colour chart at https://sites.google.com/site/meticulosslacker/pygame-thecolors
 
 # List of colours to be used for different tracks of the MIDI file:
-NOTE_COLOURS = (WHITE, GREEN, BLUE, YELLOW, MAGENTA, CYAN, RED)
+NOTE_COLOURS = (RED, WHITE, GREEN, BLUE, YELLOW, MAGENTA, CYAN, RED)
 NUM_COLOURS = len(NOTE_COLOURS)
 
 BG_COLOUR = pygame.Color('darkgray')
 FG_COLOUR = pygame.Color('orange')
-FG_COLOURS = [WHITE, RED, pygame.Color('orange'), GREEN, BLUE]
+FG_COLOURS = [RED, WHITE, pygame.Color('orange'), GREEN, BLUE]
 #BACKGROUND = pygame.Color('indigo') # name not recognised
 #BACKGROUND = pygame.Color('#4b0082') # This is indigo
 BACKGROUND = BLACK
 
-
-
-# Some variables to control display and changing of current time in "play" mode
-show_osd = False
-paused = False
-seek_offset = 0
-osd_font = pygame.font.SysFont(None, 48)
-OSD_COLOUR = WHITE
 
 
 
@@ -107,27 +102,33 @@ def draw_note(n, t, foreground):
   # One or both of those rectangles may be off the screen
   # If n is actually playing at time t, draw in the foreground colour,
   # else background.
-  section_num = bisect_left(SECTION_STARTS, t) - 1
-  if section_num < 0: # can happen if t<=0
-    section_num = 0
+  page_num = bisect_left(PAGE_STARTS, t) - 1
+  if page_num < 0: # can happen if t<=0
+    page_num = 0
+  if page_num >= len(PAGE_STARTS)-1: # scrolling takes us past the last page
+    page_num = len(PAGE_STARTS)-2
+
+  page_times = (PAGE_STARTS[page_num], PAGE_STARTS[page_num+1])
+  page_width  = page_times[1]-page_times[0]
+  # to do: adjust for if time > SCROLL_TIME
+  if t > SCROLL_TIME:
+    page_times = (t-SCROLL_OFFSET, t-SCROLL_OFFSET+page_width)
 
   if not foreground:
-    bg_times = BACKGROUND_TIMES[section_num]
-    bg_width  = bg_times[1]-bg_times[0]
-    x0_bg = (n.t0-bg_times[0])/bg_width*WIDTH
-    x1_bg = (n.t1-bg_times[0])/bg_width*WIDTH
+    x0_bg = (n.t0-page_times[0])/page_width*WIDTH
+    x1_bg = (n.t1-page_times[0])/page_width*WIDTH
     y0 = (HIGHEST_NOTE - n.note) / (HIGHEST_NOTE - LOWEST_NOTE + 1) * HEIGHT
     note_bg = pygame.Rect(x0_bg, y0, x1_bg-x0_bg, NOTE_HEIGHT)
    
     col = BG_COLOUR
     pygame.draw.rect(screen, col, note_bg)
 
-  if foreground and t>n.t0 and t<n.t1 + FADEOUT_TIME:
-    fg_times = (SECTION_STARTS[section_num], SECTION_STARTS[section_num+1])
-    fg_width  = fg_times[1]-fg_times[0]
+  if foreground and t>n.t0:
 
-    x0_fg = (n.t0-fg_times[0])/fg_width*WIDTH
-    x1_fg = (n.t1-fg_times[0])/fg_width*WIDTH
+    x0_fg = (n.t0-page_times[0])/page_width*WIDTH
+    x1_fg = (n.t1-page_times[0])/page_width*WIDTH
+    x_current = (t-page_times[0])/page_width*WIDTH
+    x1_fg = min(x1_fg, x_current) # draw only the part of the note up to the current time
     y0 = (HIGHEST_NOTE - n.note) / (HIGHEST_NOTE - LOWEST_NOTE + 1) * HEIGHT
     note_fg = pygame.Rect(x0_fg, y0, x1_fg-x0_fg, NOTE_HEIGHT)
     col = FG_COLOURS[n.track]
@@ -136,82 +137,74 @@ def draw_note(n, t, foreground):
 
 
 # Read and parse the MIDI file
-mid = mido.MidiFile(MIDI_FILE)
-PPQN = mid.ticks_per_beat
+def parse_midi(filename):
+  mid = mido.MidiFile(filename)
+  PPQN = mid.ticks_per_beat
 
-def isKeyDown(e):
-  # e is a MIDI event.
-  return (e.type == 'note_on' and e.velocity > 0)
-  # relying on short circuit evaluation!
+  def isKeyDown(e):
+    # e is a MIDI event.
+    return (e.type == 'note_on' and e.velocity > 0)
+    # relying on short circuit evaluation!
 
-def isKeyUp(e):
-  return (e.type == 'note_off' or (e.type == 'note_on' and e.velocity == 0))
+  def isKeyUp(e):
+    return (e.type == 'note_off' or (e.type == 'note_on' and e.velocity == 0))
 
-# Step through the file and create notes
-allnotes = []
-# Keep a pending list:
-pending = {}
-# When a note-on event comes up, create a pending note with t0 at current time but no t1
-#  key = the note value
-# When there's note-off, or note-on with zero velocity
-#  look for a matching item in the pending list and move it to allnotes
+  # Step through the file and create notes
+  allnotes = []
+  # Keep a pending list:
+  pending = {}
+  # When a note-on event comes up, create a pending note with t0 at current time but no t1
+  #  key = the note value
+  # When there's note-off, or note-on with zero velocity
+  #  look for a matching item in the pending list and move it to allnotes
 
-key_times = [[] for _ in range(128)]
-# This is a list of 128 empty lists, one for each MIDI note number.
-# As we parse the files, we'll store the note-on times for each note in the corresponding list.
-key_indices = [0]*128
-# This is for playback: each key_indices element will be updated to point to the most recent key_times element
+  def addToPending(e, t, trk):
+    n = Note()
+    n.note = e.note
+    n.t0 = t
+    n.vel = e.velocity
+    n.track = trk
+    n.channel = e.channel
+    pending[n.note] = n
 
-def addToPending(e, t, trk):
-  n = Note()
-  n.note = e.note
-  n.t0 = t
-  n.vel = e.velocity
-  n.track = trk
-  n.channel = e.channel
-  pending[n.note] = n
-  key_times[n.note].append(t)
+  def addToNotes(e, t):
+    note = e.note
+    if note in pending:
+      n = pending[note]
+      n.t1 = t
+      allnotes.append(n)
+      del pending[note]
 
-def addToNotes(e, t):
-  note = e.note
-  if note in pending:
-    n = pending[note]
-    n.t1 = t
-    allnotes.append(n)
-    del pending[note]
+  # Read the tracks in order from background to foreground.
+  seconds_per_tick = 0.5 / PPQN # assume tempo of 120 beats per minute until we find out otherwise
+  tracknum = 0
+  for t in mid.tracks:
+  # nb reading the tempo still isn't quite right, as it will only use the last tempo from track 0; it won't handle multiple tempos in one piece.
+    abstime = 0 # reset absolute time at the start of each track.
+    # nb abstime is in ticks
+    for e in t:
+      abstime += e.time
+      if e.type == 'set_tempo':
+	seconds_per_tick = e.tempo / PPQN / 1000000
+      if isKeyDown(e):
+	addToPending(e, abstime * seconds_per_tick, tracknum)
+      if isKeyUp(e):
+	addToNotes(e, abstime * seconds_per_tick)
+    tracknum += 1
+  return(allnotes)
 
-# Read the tracks in order from background to foreground.
-seconds_per_tick = 0.5 / PPQN # assume tempo of 120 beats per minute until we find out otherwise
-for tracknum in [0] + TRACK_ORDER: # always include track 0 because it's the tempo map!
-# nb reading the tempo still isn't quite right, as it will only use the last tempo from track 0; it won't handle multiple tempos in one piece.
-  t = mid.tracks[tracknum]
-  abstime = 0 # reset absolute time at the start of each track.
-  # nb abstime is in ticks
-  for e in t:
-    abstime += e.time
-    if e.type == 'set_tempo':
-      seconds_per_tick = e.tempo / PPQN / 1000000
-    if isKeyDown(e):
-      addToPending(e, abstime * seconds_per_tick, tracknum)
-    if isKeyUp(e):
-      addToNotes(e, abstime * seconds_per_tick)
-
-for l in key_times:
-  l.sort()
+fg_notes = parse_midi(MIDI_FILE)
+print(len(fg_notes))
+bg_notes = parse_midi(MIDI_BACKGROUND)
+print(len(bg_notes))
 
 # At this point we have an allnotes array and can start to animate it.
 def make_frame(t):
     screen.fill(BACKGROUND)
-    for n in allnotes:
+    for n in bg_notes:
       draw_note(n, t-MIDI_OFFSET, foreground = False)
-    for n in allnotes:
+    for n in fg_notes:
       draw_note(n, t-MIDI_OFFSET, foreground = True)
-    if show_osd:
-      timetext = osd_font.render("%.1f" % (t-MIDI_OFFSET), True, OSD_COLOUR)
-      textrect = timetext.get_rect()
-      textrect.x = 0
-      textrect.y = 0
-      screen.blit(timetext, textrect)
     if MODE == 'save':
       # pymovie swaps the x and y coordinates, so we need to flip the surface back
       return pygame.surfarray.array3d(
@@ -229,66 +222,22 @@ pygame.display.set_caption('Animation')
 background = pygame.Surface(screen.get_size())
 background.fill(BLACK)
 
-def seek(seek_time):
-  global seek_offset
-  seek_offset += seek_time
-  global audioPlaying
-  audioPlaying = False
-  soundtrack.pause()
-  if seek_time < 0:
-    global key_indices
-    key_indices = [0]*128
-  global paused
-  paused = False
-
-
 if MODE == 'play':
   running = True
   audioPlaying = False
-  soundtrack = pyglet.media.Player()
-  soundtrack.queue(pyglet.media.load(WAV_FILE_ORIGINAL, streaming=False))
   while running:
-    pyglet.clock.tick() # needed to play sounds in more recent Pyglet versions
     for event in pygame.event.get():
       if event.type == QUIT:
         running = False
-      if event.type == KEYDOWN:
-        if event.key == pygame.K_q: # quit
-          running = False
-        if event.key == pygame.K_o: # toggle on-screen display
-          show_osd =  not show_osd
-        if event.key == pygame.K_RIGHT:
-          seek(10)
-        if event.key == pygame.K_LEFT:
-          seek(-10)
-        if event.key == pygame.K_UP:
-          seek(60)
-        if event.key == pygame.K_DOWN:
-          seek(-60)
-        if event.key == pygame.K_SPACE:
-          paused = not paused
-          if paused:
-            pause_time = t
-            audioPlaying = False
-            soundtrack.pause()
-          else:
-            seek_offset -= t - pause_time
-        if event.key == pygame.K_PERIOD and paused:
-          # advance to next frame
-          pause_time += 1/FPS
 
-
-    t = pygame.time.get_ticks()/1000 + seek_offset
-    if (not audioPlaying) and (not paused) and t > AUDIO_OFFSET:
-      soundtrack.seek(t-AUDIO_OFFSET)
-      soundtrack.play()
+    t = pygame.time.get_ticks()/1000
+    if (not audioPlaying) and t > AUDIO_OFFSET:
+      audioplayer = subprocess.Popen(["/usr/bin/aplay", WAV_FILE_ORIGINAL])
       audioPlaying = True
-    if paused:
-      make_frame(pause_time)
-    else:
-      make_frame(t)
-    pygame.display.flip()
+    make_frame(t)
+    pygame.display.update()
 
+  audioplayer.kill()
   pygame.display.quit()
   pygame.quit()
   sys.exit()
