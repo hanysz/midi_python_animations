@@ -5,6 +5,11 @@ from __future__ import division # so that a/b for integers evaluates as floating
 # (typically the background file would be the theme repeated,
 #   and the foreground file has the variations)
 
+# To do:
+#   add 12 seconds of silence to end of Haydn audio!
+#   quantise note start times to fit pixel grid, to avoid jitter
+#     or better implement by rounding coordinate offsets to a whole number of pixels?
+
 import pygame, sys, subprocess, os, time, mido
 from pygame.locals import *
 from moviepy.editor import *
@@ -90,8 +95,13 @@ def draw_note(n, t, foreground):
 
   page_times = (PAGE_STARTS[page_num], PAGE_STARTS[page_num+1])
   page_width  = page_times[1]-page_times[0]
-  # to do: adjust for if time > SCROLL_TIME
+  
   if t > SCROLL_TIME:
+    # need to round to a whole number of pixels,
+    # or else the notes jitter while scrolling
+    pixels_since_scroll = (t-SCROLL_TIME)/page_width * WIDTH
+    pixel_offset = pixels_since_scroll - int(pixels_since_scroll)
+    t = t-(pixel_offset/WIDTH)*page_width
     page_times = (t-SCROLL_OFFSET, t-SCROLL_OFFSET+page_width)
 
   if not foreground:
