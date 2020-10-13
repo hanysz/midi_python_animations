@@ -1,0 +1,25 @@
+# Copy this into ~/Pictures/Stellarium then source
+
+echo renaming frames
+for x in `seq -f %03.0f 0 999`; do mv frame_$x.png frame_0$x.png; done
+
+echo assembling frames into animation video step1.mp4
+ffmpeg -f image2 -r 25 -i frame_%4d.png step1.mp4
+
+echo creating blank video for opening credits
+ffmpeg -f lavfi -i color=#373952:s=1920x1080:d=11,format=rgb24 -r 25 blank.mp4
+
+echo creating blank video for closing credits
+ffmpeg -f lavfi -i color=#fffbd3:s=1920x1080:d=15,format=rgb24 -r 25 blank2.mp4
+
+echo crossfading initial blank video with animation to make step2.mp4
+ffmpeg -i blank.mp4 -i step1.mp4 -filter_complex xfade=offset=7:duration=4 step2.mp4
+
+echo crossfading final blank video with animation to make step3.mp4
+ffmpeg -i step2.mp4 -i blank2.mp4 -filter_complex xfade=offset=285:duration=8 step3.mp4
+
+echo adding subtitles to make step4.mp4
+ffmpeg -i step3.mp4 -vf "subtitles=translation_subtitles.ass" step4.mp4
+
+echo adding audio stream to make output.mp4
+ffmpeg -i step4.mp4 -i /home/alex/midi/2020-05-rach_lullaby/lullaby_2020-10-11.mp3 -c copy -map 0:v:0 -map 1:a:0 output.mp4
