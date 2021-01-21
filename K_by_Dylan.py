@@ -1,100 +1,119 @@
 from __future__ import division # so that a/b for integers evaluates as floating point
-import pygame, sys, subprocess, os, time, mido
+import pygame, sys, subprocess, os, time, mido, math
 from pygame.locals import *
+from pygame import gfxdraw
 from moviepy.editor import *
-
-# Work in progress...
 
 # Left piano: channel 16=accent, channel 1=normal, channel 2=middle section
 # Right piano: channel 13=accent, channel 7=normal, channel 4=middle section
 # Note velocities range from 11 to 122
 
-# To do: different shapes to represent the rhythmic groupings
+# To do:
+#   change "fade to black" for note middles into "fade to background colour"
+#   fix glitches in MIDI file (doesn't affect this code but still needs doing)
+#   remove anything that says "for testing"
 
 MODE = 'play' # Display the animation on screen in real time
-#MODE = 'save' # Save the output to a video file instead of displaying on screen
+MODE = 'save' # Save the output to a video file instead of displaying on screen
 
-FPS = 25 # frames per second for saved video output
+FPS = 30 # frames per second for saved video output
 
-LOWEST_NOTE = 21 # midi note number of the bottom of the screen
-HIGHEST_NOTE = 108
 ONSCREEN_TIME = 12 # number of seconds for a note to cross the screen
-INNER_BRIGHTNESS = 0.4 # brightness of the middle of the note when lit up
+INNER_BRIGHTNESS = 0.9 # brightness of the middle of the note when lit up
 FADEOUT_TIME = 3 # number of seconds for a note to stop being lit after it's stopped sounding
 LINEWIDTH = 1 # thickness of the circle outline in pixels
 # nb with width>2 there's obvious cropping at the bottom and right of each note:
 # not sure why, maybe a pygame bug??
 
 HEIGHT = 1080 # nb near the end, set fontsize=45 if HEIGHT=1080, or 30 if 720
+TEXTSIZE = 45
+
 HEIGHT=800 # for testing
+TEXTSIZE = 33
 WIDTH = int(HEIGHT * 16/9)
-NOTEWIDTH  = WIDTH / (HIGHEST_NOTE - LOWEST_NOTE + 1)
 
 
 # set up some colours
 BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-WHITE = (255, 255, 255)
-CYAN = (0, 255, 255)
-MAGENTA = (255, 0, 255)
-YELLOW = (255, 255, 0)
 
-# List of colours to be used for different tracks of the MIDI file:
-NOTE_COLOURS = (WHITE, GREEN, BLUE, YELLOW, MAGENTA, CYAN, RED)
+LEFT_COL = (3, 228, 247) # acqua for left channel
+RIGHT_COL = (5, 225, 12) # sea-green for right channel
+WHITE = (255, 255, 255)
+BACKGROUND = (0, 0, 30) # dark blue for a deep watery K
+
 
 
 MIDI_FILE = '/home/alex/midi/K/2021-01-20-K_v03.mid'
 WAV_FILE_ORIGINAL = '/home/alex/midi/K/K_v03.wav'
 WAV_FILE_TEMP = '/tmp/animation_audio.wav' # temporary store for padded version of audio
-LENGTH = 729 # length of the video file to be generated, in seconds
+LENGTH = 714 # length of the video file to be generated, in seconds
 AUDIO_OFFSET = 8.0 # number of seconds late to start the audio
 MIDI_OFFSET = 8.0 # number of seconds to shift midi events by
-AUDIO_OFFSET = 1.0 # for testing
-MIDI_OFFSET = 1.0 # for testing
+#AUDIO_OFFSET = 1.0 # for testing
+#MIDI_OFFSET = 1.0 # for testing
 TRACK_ORDER = [2,1]
 BIG_RADIUS = int(WIDTH/70) # accented notes
-SMALL_RADIUS = int(WIDTH/100)
+SMALL_RADIUS = int(WIDTH/120)
 OUTPUT_FILE = '/home/alex/midi/python_animations/K_by_Dylan_Crismani.mp4'
 
 titletext = "K for two pianos by Dylan Crismani\n\n" + \
+  "Composed 2018\n\n" + \
   "Performed by Alexander Hanysz\n" + \
-  "January 2021\n" + \
+  "January 2021\n\n" + \
   "Virtual pianos from Pianoteq"
 
-NOTE_COLOURS = (WHITE, CYAN, BLUE, MAGENTA, RED)
 
 LOWEST_NOTE = -2 # midi note number of the bottom of the screen
 HIGHEST_NOTE = 107
 
-INNER_BRIGHTNESS=0.5
 
-FPS=30
 
-NUM_COLOURS = len(NOTE_COLOURS)
 
 def dimmer(colour, brightness):
   return(colour[0]*brightness, colour[1]*brightness, colour[2]*brightness)
 
 
 class Note(object):
-  __slots__ = ['note', 't0', 't1', 'vel', 'track', 'channel']
+  __slots__ = ['note', 't0', 't1', 'vel', 'track', 'channel', 'shape']
   # note = MIDI note number
   # t0, t1 = start and finish times in seconds
   # vel = MIDI velocity
   # track = track number
   # channel = channel number
+  # shape = 1 for round notes, 2-7 for polygons
   
-  def __str__(self): # Printable version of note for debutting
+  def __str__(self): # Printable version of note for debugging
     answer = 'Note number ' + str(self.note)
     answer += ' time ' + str(self.t0) + '-' + str(self.t1)
     answer += '; vel ' + str(self.vel) + ', track ' + str(self.track)
     answer += ', ch' + str(self.channel)
     return answer
 
+def draw_shape(x, y, radius, shape, incol, outcol, filled):
+  # x, y = position
+  # shape = 1 for circle, 2+ for polygon
+  #   where a digon will actually be a tall thin rectangle
+  # incol, outcol = inside and outside colours
+  if shape==1:
+    if filled:
+      gfxdraw.filled_circle(screen, x, y, radius, incol)
+    gfxdraw.aacircle(screen, x, y, radius, outcol)
+    return
+  angles = [2*k*math.pi/shape for k in range(shape)]
+  if shape % 2 == 1: # odd shapes look better with a pointy bit at the top!
+    angles = [theta - math.pi/2 for theta in angles]
+  if shape == 4:
+    angles = [theta - math.pi/4 for theta in angles]
+  if shape == 2:
+    theta = math.pi*0.4
+    angles = [theta, math.pi-theta, math.pi+theta, -theta]
+  points = [(x+math.cos(theta)*radius, y+math.sin(theta)*radius) for theta in angles]
+  if filled:
+    gfxdraw.filled_polygon(screen, points, incol)
+  gfxdraw.aapolygon(screen, points, outcol)
+
 def draw_bubble(n, t):
-  # Draw the note n at time t as a circle
+  # Draw the note n at time t
   appear_time = n.t0 - ONSCREEN_TIME/2
   vanish_time = n.t0 + ONSCREEN_TIME/2
   outline_fade = 1
@@ -111,14 +130,15 @@ def draw_bubble(n, t):
   if n.channel in [12,15]: #accented notes
     outcol = WHITE
   elif n.track==1: #left piano
-    outcol = CYAN
+    outcol = LEFT_COL
   else:
-    outcol = YELLOW
+    outcol = RIGHT_COL
   outcol = dimmer(outcol, outline_fade)
 
   filled = True
   if t<n.t0 or t>n.t1+FADEOUT_TIME:
     filled = False
+    incol = outcol # dummy value since this gets passed to draw_shape anyway
   elif t<n.t1:
     incol = dimmer(outcol, INNER_BRIGHTNESS)
   else:
@@ -146,13 +166,16 @@ def draw_bubble(n, t):
       #pygame.draw.ellipse(screen, incol, rect)
     #pygame.draw.ellipse(screen, outcol, rect, LINEWIDTH)
 
-    epsilon = x - int(x)
-    rect = pygame.Rect(epsilon+LINEWIDTH, epsilon+LINEWIDTH, radius*2+(LINEWIDTH-1)*2, radius*2+(LINEWIDTH-1)*2)
-    tempSurface = pygame.Surface((radius*2+LINEWIDTH*2-1, radius*2+LINEWIDTH*2-1))
-    if filled:
-      pygame.draw.ellipse(tempSurface, incol, rect)
-    pygame.draw.ellipse(tempSurface, outcol, rect, min(LINEWIDTH, radius))
-    screen.blit(tempSurface, (int(x)-radius-LINEWIDTH, int(y)-radius-LINEWIDTH), None, pygame.BLEND_ADD)
+    x = int(x)
+    y = int(y)
+    #epsilon = x - int(x)
+    #rect = pygame.Rect(epsilon+LINEWIDTH, epsilon+LINEWIDTH, radius*2+(LINEWIDTH-1)*2, radius*2+(LINEWIDTH-1)*2)
+    #tempSurface = pygame.Surface((radius*2+LINEWIDTH*2-1, radius*2+LINEWIDTH*2-1))
+    #if filled:
+      #pygame.draw.ellipse(tempSurface, incol, rect)
+    #pygame.draw.ellipse(tempSurface, outcol, rect, min(LINEWIDTH, radius))
+    #screen.blit(tempSurface, (int(x)-radius-LINEWIDTH, int(y)-radius-LINEWIDTH), None, pygame.BLEND_ADD)
+    draw_shape(x, y, radius, n.shape, incol, outcol, filled)
 
 
 
@@ -184,6 +207,7 @@ def addToPending(e, t, trk):
   n.vel = e.velocity
   n.track = trk
   n.channel = e.channel
+  n.shape = 1
   pending[n.note] = n
 
 def addToNotes(e, t):
@@ -211,10 +235,29 @@ for tracknum in [0] + TRACK_ORDER: # always include track 0 because it's the tem
     if isKeyUp(e):
       addToNotes(e, abstime * seconds_per_tick)
 
+# Assign shapes to accented notes, i.e. channels 13 and 16
+# Shape = number of notes between accented notes
+#  e.g. where every 5th note is accented, we want shape=5
+# Work backwards, because if we have groups of 3, 3, 3, 4, 4
+#  then the *first* note of the 4 must have shape = 4 not 3
+gap = 1
+for n in allnotes:
+  if n.channel in [12, 15]:
+    if gap>7: # first accent of the recap
+      if n.track==1:
+        n.shape=3
+      else:
+        n.shape=2
+    else:
+      n.shape=gap
+    gap = 1 # reset counter each time we assign a shape
+  else:
+    gap += 1
+
 
 # At this point we have an allnotes array and can start to animate it.
 def make_frame(t, draw_function):
-    screen.fill(BLACK)
+    screen.fill(BACKGROUND)
     for n in allnotes:
       draw_function(n, t-MIDI_OFFSET)
     if MODE == 'save':
@@ -234,7 +277,7 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Animation')
 background = pygame.Surface(screen.get_size())
-background.fill(BLACK)
+background.fill(BACKGROUND)
 
 if MODE == 'play':
   running = True
@@ -265,12 +308,11 @@ else:
   animation_clip = VideoClip(lambda t: make_frame(t, draw_bubble),
                              duration=LENGTH)
   titles = TextClip(
-     titletext, # from settings import
-    #font='Segoe-Script-Regular', fontsize = 30, color = 'white'
-    # font has been renamed since I last did this, it's still the same font!
-    font='Segoe-Script', fontsize = 45, color = 'white'
+     titletext,
+    font='Segoe-Script', fontsize = TEXTSIZE, color = 'white'
   )
-  titles = titles.set_pos('center').set_duration(7.5).fadein(3).fadeout(2.5)
+  titles = titles.set_pos('center').set_duration(7.5)\
+                 .fadein(3, initial_color=BACKGROUND).fadeout(2.5, final_color=BACKGROUND)
   audio = AudioFileClip(WAV_FILE_TEMP)
   audio.set_start(AUDIO_OFFSET)
   animation_clip = animation_clip.set_audio(audio)
