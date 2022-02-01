@@ -1,0 +1,63 @@
+[Script Info]
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 1
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, Alignment, Encoding
+Style: S1, Segoe Script,100,&H80888888,2,0
+Style: S2, Segoe Script,100,&H80400000,2,0
+
+[Events]
+Format: Start, End, Style, Text
+Dialogue: 00:00:00.30, 00:00:08.00, S1, {\pos(960,240)}{\fad(1200,1200)}Lullaby by Tchaikovsky
+Dialogue: 00:00:00.30, 00:00:08.00, S1, {\pos(960,360)}{\fad(1200,1200)}Transcribed for solo piano by Rachmaninoff
+Dialogue: 00:00:00.30, 00:00:08.00, S1, {\pos(960,480)}{\fad(1200,1200)}Performed by Alexander Hanysz
+Dialogue: 00:00:00.30, 00:00:08.00, S1, {\pos(960,600)}{\fad(1200,1200)}May 2020
+Dialogue: 00:00:00.30, 00:00:08.00, S1, {\pos(960,840)}{\fad(1200,1200)}Virtual Steinway D piano from Pianoteq 6
+Dialogue: 00:00:29.00, 00:00:40.00, S1, {\pos(960,140)}{\fad(700,700)}Спи, дитя моё, усни!
+Dialogue: 00:00:29.00, 00:00:40.00, S1, {\pos(960,1040)}{\fad(700,700)}Sleep, my child, and fall asleep!
+Dialogue: 00:00:40.00, 00:00:49.00, S1, {\pos(960,140)}{\fad(700,700)}Сладкий сон к себе мани:
+Dialogue: 00:00:40.00, 00:00:49.00, S1, {\pos(960,1040)}{\fad(700,700)}Beckon slumber's sweetness deep:
+Dialogue: 00:00:52.00, 00:00:59.00, S1, {\pos(960,140)}{\fad(700,700)}В няньки я тебе взяла
+Dialogue: 00:00:52.00, 00:00:59.00, S1, {\pos(960,1040)}{\fad(700,700)}I have summoned three nannies for you -
+Dialogue: 00:00:59.40, 00:01:08.00, S1, {\pos(960,140)}{\fad(700,700)}Ветер, солнце и орла.
+Dialogue: 00:00:59.40, 00:01:08.00, S1, {\pos(960,1040)}{\fad(700,700)}The wind, the sun and an eagle.
+Dialogue: 00:01:27.00, 00:01:32.00, S1, {\pos(960,140)}{\fad(700,700)}Улетел орёл домой;
+Dialogue: 00:01:27.00, 00:01:32.00, S1, {\pos(960,1040)}{\fad(700,700)}The eagle has flown home,
+Dialogue: 00:01:32.20, 00:01:37.00, S1, {\pos(960,140)}{\fad(700,700)}Солнце скрылось под водой:
+Dialogue: 00:01:32.20, 00:01:37.00, S1, {\pos(960,1040)}{\fad(700,700)}The sun has hidden above the water,
+Dialogue: 00:01:38.00, 00:01:43.00, S1, {\pos(960,140)}{\fad(700,700)}Ветер, после трех ночей,
+Dialogue: 00:01:38.00, 00:01:43.00, S1, {\pos(960,1040)}{\fad(700,700)}The wind, after three nights,
+Dialogue: 00:01:44.00, 00:01:49.00, S1, {\pos(960,140)}{\fad(700,700)}Мчится к матери своей.
+Dialogue: 00:01:44.00, 00:01:49.00, S1, {\pos(960,1040)}{\fad(700,700)}Races to its mother.
+Dialogue: 00:01:50.00, 00:01:59.00, S1, {\pos(960,140)}{\fad(700,700)}Ветра спрашивает мать:
+Dialogue: 00:01:50.00, 00:01:59.00, S1, {\pos(960,1040)}{\fad(700,700)}The wind's mother asked him:
+Dialogue: 00:02:00.00, 00:02:08.00, S1, {\pos(960,140)}{\fad(700,700)}«Где изволил пропадать?
+Dialogue: 00:02:00.00, 00:02:08.00, S1, {\pos(960,1040)}{\fad(700,700)}"Where have you been hiding all this time?
+Dialogue: 00:02:11.00, 00:02:19.00, S1, {\pos(960,140)}{\fad(700,700)}Али звезды воевал?
+Dialogue: 00:02:11.00, 00:02:19.00, S1, {\pos(960,1040)}{\fad(700,700)}Did you wage war with the stars?
+Dialogue: 00:02:19.20, 00:02:29.00, S1, {\pos(960,140)}{\fad(700,700)}Али волны всё гонял?»
+Dialogue: 00:02:19.20, 00:02:29.00, S1, {\pos(960,1040)}{\fad(700,700)}Did you drive the waves away?"
+Dialogue: 00:02:46.00, 00:02:52.00, S1, {\pos(960,140)}{\fad(700,700)}«Не гонял я волн морских,
+Dialogue: 00:02:46.00, 00:02:52.00, S1, {\pos(960,1040)}{\fad(700,700)}"I didn't drive the waves of the sea away,
+Dialogue: 00:02:52.40, 00:02:57.00, S1, {\pos(960,140)}{\fad(700,700)}Звезд не трогал золотых;
+Dialogue: 00:02:52.40, 00:02:57.00, S1, {\pos(960,1040)}{\fad(700,700)}I touched no golden stars;
+Dialogue: 00:02:58.00, 00:03:04.00, S1, {\pos(960,140)}{\fad(700,700)}Я дитя оберегал,
+Dialogue: 00:02:58.00, 00:03:04.00, S1, {\pos(960,1040)}{\fad(700,700)}I was keeping a child safe and sound,
+Dialogue: 00:03:05.00, 00:03:11.00, S1, {\pos(960,140)}{\fad(700,700)}Колыбелочку качал!»
+Dialogue: 00:03:05.00, 00:03:11.00, S1, {\pos(960,1040)}{\fad(700,700)}Rocking its little cradle!"
+Dialogue: 00:03:17.00, 00:03:25.00, S1, {\pos(960,140)}{\fad(700,700)}Спи, дитя моё, спи, усни! спи, усни!
+Dialogue: 00:03:17.00, 00:03:25.00, S1, {\pos(960,1040)}{\fad(700,700)}Sleep, my child, and fall asleep!
+Dialogue: 00:03:26.00, 00:03:33.00, S1, {\pos(960,140)}{\fad(700,700)}Сладкий сон к себе мани:
+Dialogue: 00:03:26.00, 00:03:33.00, S1, {\pos(960,1040)}{\fad(700,700)}Beckon slumber's sweetness deep:
+Dialogue: 00:03:35.00, 00:03:48.00, S1, {\pos(960,140)}{\fad(700,700)}В няньки я тебе взяла
+Dialogue: 00:03:35.00, 00:03:48.00, S1, {\pos(960,1040)}{\fad(700,700)}I have summoned three nannies for you -
+Dialogue: 00:03:52.00, 00:04:00.00, S1, {\pos(960,140)}{\fad(700,700)}Ветер, солнце и орла.
+Dialogue: 00:03:52.00, 00:04:00.00, S1, {\pos(960,1040)}{\fad(700,700)}The wind, the sun and an eagle.
+Dialogue: 00:04:51.00, 00:04:59.00, S2, {\pos(960,280)}{\fad(1200,2000)}Text by Apollon Nikolayevich Maykov
+Dialogue: 00:04:51.00, 00:04:59.00, S2, {\pos(960,450)}{\fad(1200,2000)}English translation by Philip Ross Bullock
+Dialogue: 00:04:51.00, 00:04:59.00, S2, {\pos(960,630)}{\fad(1200,2000)}Text and translation provided courtesy of
+Dialogue: 00:04:51.00, 00:04:59.00, S2, {\pos(960,750)}{\fad(1200,2000)}Oxford Lieder (www.oxfordlieder.co.uk)
+Dialogue: 00:04:51.00, 00:04:59.00, S2, {\pos(960,930)}{\fad(1200,2000)}Images created using Stellarium (www.stellarium.org)
+

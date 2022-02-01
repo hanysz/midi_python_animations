@@ -1,0 +1,50 @@
+{
+renderflags {clear "constellations|comettails|boundaries"}
+renderflags {clear "pointstars|galaxies|markers"}
+renderflags {set "cloudmaps|eclipseshadows|atmospheres|nightmaps"}
+labels {clear "planets|moons|spacecraft|asteroids|constellations|stars|galaxies"}
+renderflags {set "orbits"}
+#
+#------------------------------------------------------------------------
+# Set up lighting, the view and the date for this tour. (800x600 display)
+# Celestia default FOV = 25. View Earth on June 6, 2004.
+#------------------------------------------------------------------------
+#
+set {name "AmbientLightLevel" value 0.10}
+set {name "FOV" value 35.0}
+
+seturl {url "cel://Freeflight/2035-04-24T23:05:49.20709Z?x=AOVqURroR5MF&y=ZGajLwS3YV/7/////////w&z=AP2C6C38TdX+/////////w&ow=0.367044&ox=-0.762184&oy=0.062136&oz=-0.529616&select=Sol&fov=28.8829&ts=1&ltd=0&p=0&rf=134239667&nrf=255&lm=0&tsrc=0&ver=3"}
+
+timerate {rate 40000}
+wait{duration 10}
+# smoother start: split this into 3 parts...
+move {duration 3 velocity  [10000000  -7000000   -2000000]}
+timerate {rate 47000}
+move {duration 3 velocity  [11892000  -8324400   -2378400]}
+timerate {rate 52000}
+move {duration 3 velocity  [14142000  -9899500   -2828400]}
+timerate {rate 60000}
+move {duration 3 velocity  [16818000  -11772500  -3363600]}
+timerate {rate 63700}
+move {duration 6 velocity  [20000000 -14000000  -4000000]}
+timerate {rate 66700}
+move {duration 6 velocity  [25000000 -17500000  -5000000]}
+timerate {rate 111000}
+move {duration 12 velocity  [30000000 -21000000  -6000000]}
+timerate {rate 186000}
+move {duration 12 velocity  [40000000 -28000000  -8000000]}
+timerate {rate 310000}
+move {duration 12 velocity  [50000000 -35000000 -10000000]}
+timerate {rate 517000}
+move {duration 12 velocity  [60000000 -42000000 -12000000]}
+timerate {rate 862000}
+move {duration 12 velocity  [75000000 -52500000 -15000000]}
+timerate {rate 1438000}
+move {duration 12 velocity  [93750000 -65625000 -18750000]}
+timerate {rate 2398000}
+move {duration 12 velocity  [110000000 -77000000 -22000000]}
+timerate {rate 4000000}
+move {duration 12 velocity [130000000 -84000000 -26000000]}
+wait{duration 5}
+
+}

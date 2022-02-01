@@ -1,0 +1,100 @@
+{
+renderflags {clear "orbits|constellations|comettails|boundaries"}
+renderflags {clear "pointstars|galaxies|markers"}
+renderflags {set "cloudmaps|eclipseshadows|atmospheres|nightmaps"}
+labels {clear "planets|moons|spacecraft|asteroids|constellations|stars|galaxies"}
+
+set {name "AmbientLightLevel" value 0.20}
+set {name "FOV" value 35.0}
+
+seturl {url "cel://Freeflight/2021-10-05T05:29:28.66022Z?x=gKUfiZ+Gp99F&y=mExw29z/GqH+/////////w&z=APOfHTKRcQgl&ow=0.225793&ox=0.308264&oy=-0.921591&oz=0.0682727&track=Sol:Jupiter&select=Sol:Jupiter&fov=30.491&ts=1&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+timerate {rate 0}
+wait {duration 7}
+
+cancel {}
+track {}
+timerate {rate 20000}
+wait {duration 30}
+timerate {rate 17000}
+wait {duration 5}
+timerate {rate 14000}
+wait {duration 5}
+timerate {rate 10000}
+wait {duration 5}
+timerate {rate 8500}
+wait {duration 5}
+timerate {rate 7000}
+wait {duration 5}
+timerate {rate 5000}
+wait {duration 5}
+cancel {}
+follow {}
+timerate {rate 3800}
+
+# 60 seconds
+#arrive at:
+#seturl {url "cel://Follow/Sol:Jupiter/2021-10-15T17:33:51.26270Z?x=AEYB8HD77xE&y=gIE8YfhEcQk&z=AErGeP1dGOX//////////w&ow=0.314638&ox=0.33026&oy=-0.888971&oz=-0.0407657&select=Sol:Jupiter&fov=30.491&ts=3800&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+
+orbit {duration 60 rate 1 axis [1 0 -1]}
+
+# 2:00
+# arrive at:
+#seturl {url "cel://Follow/Sol:Jupiter/2021-10-15T18:36:45.57770Z?x=QCd4RfO0LwQ&y=AIBqnERfOSA&z=gBxI40udHvf//////////w&ow=0.0552525&ox=-0.0302028&oy=-0.794291&oz=-0.604266&select=Sol:Jupiter&fov=30.491&ts=3800&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+
+timerate {rate 1000}
+select {object "Sol/Jupiter/Io"}
+goto {time 10.0 distance 8.0}
+wait {duration 10}
+orbit {duration 60 rate 1 axis [0.5 -1 2.5]} # 50 not 60 so we don't finish in shadow
+
+# 3:10
+
+goto {time 10.0 distance 1900}
+wait {duration 10}
+select {object "Sol/Jupiter/Europa"}
+goto {time 10.0 distance 8.0}
+wait {duration 10}
+
+# 3:30
+orbit {duration 60 rate 1 axis [-0.5 -1 0]}
+
+# 4:30
+
+select {object "Sol/Jupiter/Europa"}
+goto {time 10 distance 2100}
+wait {duration 10}
+select {object "Sol/Jupiter/Ganymede"}
+goto {time 10 distance 8.0}
+wait {duration 10}
+
+#seturl {url "cel://Follow/Sol:Jupiter:Ganymede/2021-10-20T08:05:48.31790Z?x=fMJo7IfhcQ&y=lFOu7xEURw&z=NJjkFZmpxv///////////w&ow=-0.363737&ox=-0.82344&oy=0.135435&oz=-0.413884&select=Sol:Jupiter:Ganymede&fov=30.491&ts=1000&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+# Ganymede starts in full shadow
+# 4:50
+orbit {duration 60 rate 1 axis [-0.4 1 0.1]}
+
+#5:50
+#seturl {url "cel://Follow/Sol:Jupiter:Ganymede/2021-10-21T00:45:34.27867Z?x=PNcRTyb53////////////w&y=FLpeSqIyfQ&z=iM84iGAdvP///////////w&ow=-0.516983&ox=-0.834722&oy=-0.189115&oz=0.0142928&select=Sol:Jupiter:Ganymede&fov=30.491&ts=1000&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+
+# and 97 sec to go
+select {object "Sol/Jupiter/Ganymede"}
+goto {time 15 distance 3000}
+wait {duration 15}
+select {object "Sol/Jupiter/Callisto"}
+goto {time 15 distance 8}
+wait {duration 15}
+
+#6:20
+#seturl {url "cel://Follow/Sol:Jupiter:Callisto/2021-10-21T09:05:30.13581Z?x=ED9eiHZK9////////////w&y=kAtIV0zAgQ&z=ALKwbZ1/4f///////////w&ow=0.617511&ox=0.771685&oy=0.136666&oz=0.0671154&select=Sol:Jupiter:Callisto&fov=30.491&ts=1000&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+timerate {rate 0} # stop Jupiter moving so I can find it again!
+orbit {duration 60 rate 1.0833 axis [0.5 1 0]}
+
+#7:20
+#seturl {url "cel://Follow/Sol:Jupiter:Callisto/2021-10-21T09:05:30.13581Z?x=QLOVF5Fmof///////////w&y=z6RP5WqkDA&z=2MsZlhaNov///////////w&ow=0.220541&ox=0.820838&oy=0.419561&oz=-0.318677&select=Sol:Jupiter:Callisto&fov=30.491&ts=1e-07&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+timerate {rate 1000}
+select {object "Sol/Jupiter"}
+center {time 10}
+wait {duration 10}
+goto {time 7 distance 1.1}
+wait {duration 7}
+timerate {rate 0}
+}

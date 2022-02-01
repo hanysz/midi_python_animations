@@ -1,0 +1,4 @@
+make a copy of model that's runnable
+make a subfolder of this folder to save screenshots
+run the script and make a video: test the workflow
+make a new script for the lullaby

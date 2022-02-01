@@ -1,0 +1,13 @@
+Make main video file with command line:
+
+To do: adjust frequency, currently the image is too much on the left
+Want to set top to freq of highest note times 1.2 maybe?
+Take bottom down to half of lowest note?
+
+highest is F#8 MIDI note number 102 = 2960 Hz
+lowest is C#2 MIDI note number 25 = 34.6 Hz
+
+ffmpeg -i /home/alex/midi/2020-polglase+haydn/2020-06-03-polglase.wav -filter_complex "[0:a]showcqt=text=0:bar_g=5:basefreq=30:endfreq=6000:size=1280x720,format=yuv420p[v]" -map "[v]" -map 0:a temp.mp4
+
+then add titles to the beginning with add_titles.py
+

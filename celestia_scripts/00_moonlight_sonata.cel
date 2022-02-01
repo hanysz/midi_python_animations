@@ -1,0 +1,75 @@
+{
+renderflags {clear "orbits|constellations|comettails|boundaries"}
+renderflags {clear "pointstars|galaxies|markers"}
+renderflags {set "cloudmaps|eclipseshadows|atmospheres|nightmaps"}
+labels {clear "planets|moons|spacecraft|asteroids|constellations|stars|galaxies"}
+#
+#------------------------------------------------------------------------
+# Set up lighting, the view and the date for this tour. (800x600 display)
+# Celestia default FOV = 25. View Earth on June 6, 2004.
+#------------------------------------------------------------------------
+#
+set {name "AmbientLightLevel" value 0.20}
+set {name "FOV" value 35.0}
+
+wait {duration 5}
+seturl {url "cel://Follow/Sol:Earth:Moon/2021-10-09T09:26:29.02952Z?x=QM8cYF7j0fv//////////w&y=RxEZw1GW+P///////////w&z=gGvR/SlB0Pr//////////w&ow=-0.0214776&ox=0.549035&oy=-0.809978&oz=-0.205023&select=Sol:Earth:Moon&fov=28.8829&ts=1&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"} # moon just off bottom left of screen
+
+center {time 40.0}
+wait {duration 40.0}
+cancel {}
+select {object "Sol/Earth/Moon"}
+track {}
+#seturl {url "cel://Freeflight/2021-10-09T09:27:33.84494Z?x=QLFA/6F/awMP&y=KPptBp5cow&z=gPHkBghXJpf7/////////w&ow=-0.274136&ox=0.54288&oy=-0.770663&oz=-0.190288&track=Sol:Earth:Moon&select=Sol:Earth:Moon&fov=28.8829&ts=64&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+timerate {rate 64.0}
+
+# sync start of rotate with a change in the music?
+
+rotate {duration 20.0 rate -1.0 axis [0 0 1]}
+#seturl {url "cel://Freeflight/2021-10-09T09:48:53.66097Z?x=QLFA/6F/awMP&y=KPptBp5cow&z=gPHkBghXJpf7/////////w&ow=-0.332503&ox=0.395601&oy=-0.842241&oz=-0.153531&track=Sol:Earth:Moon&select=Sol:Earth:Moon&fov=28.8829&ts=64&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+
+# Back to tracking...
+wait {duration 60.0}
+
+# 120 sec
+#seturl {url "cel://Freeflight/2021-10-09T10:52:54.39733Z?x=QLFA/6F/awMP&y=KPptBp5cow&z=gPHkBghXJpf7/////////w&ow=0.50322&ox=-0.353525&oy=0.753297&oz=0.233095&track=Sol:Earth:Moon&select=Sol:Earth:Moon&fov=28.8829&ts=64&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+timerate {rate 0.001}
+cancel {}
+follow {}
+goto {time 10.0 distance 8.0} # slow down elegantly at end here?
+wait {duration 10.0}
+
+# 130 sec
+#seturl {url "cel://Follow/Sol:Earth:Moon/2021-10-09T10:52:54.39882Z?x=BLQZaBAZp////////////w&y=pcJE3v6N/////////////w&z=NGRuXovt2v///////////w&ow=0.50322&ox=-0.353525&oy=0.753297&oz=0.233095&select=Sol:Earth:Moon&fov=28.8829&ts=0.001&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+
+  #orbit {duration 1 rate 75 axis [1 0 1]}
+orbit {duration 65 rate 1.1538 axis [1 0 1]} # 65*1.1538 = 75
+
+# 195 sec
+#seturl {url "cel://Follow/Sol:Earth:Moon/2021-10-09T10:52:54.39906Z?x=sN1Q5fhdvf///////////w&y=AllZgCWk+v///////////w&z=ICAfM6pZRQ&ow=0.370653&ox=-0.353879&oy=0.121579&oz=0.850062&select=Sol:Earth:Moon&fov=28.8829&ts=0.001&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+cancel {}
+track {}
+timerate {rate 10}
+wait {duration 65}
+cancel {}
+follow {}
+
+# 260 sec
+#seturl {url "cel://Follow/Sol:Earth:Moon/2021-10-09T11:03:43.88518Z?x=sJM0QK+14P///////////w&y=nxwi6owT+////////////w&z=IDp9Wrbqwg&ow=-0.400492&ox=0.0778113&oy=-0.0204832&oz=-0.912761&select=Sol:Earth:Moon&fov=28.8829&ts=10&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+
+timerate {rate 0.001}
+move {duration 1 velocity [0 0 1000]}
+move {duration 1 velocity [0 0 1400]}
+move {duration 1 velocity [0 0 1800]}
+move {duration 1 velocity [0 0 2300]}
+move {duration 1 velocity [0 0 3000]}
+move {duration 5 velocity [0 0 5000]}
+move {duration 5 velocity [0 0 6200]}
+move {duration 5 velocity [0 0 7200]}
+move {duration 5 velocity [0 0 7700]}
+move {duration 5 velocity [0 0 8500]}
+
+# 290 sec
+#seturl {url "cel://Follow/Sol:Earth:Moon/2021-10-09T11:03:43.88683Z?x=sJM0QK+14P///////////w&y=phwi6owT+////////////w&z=AK0RolZZLAY&ow=-0.400492&ox=0.0778113&oy=-0.0204832&oz=-0.912761&select=Sol:Earth:Moon&fov=28.8829&ts=0.001&ltd=0&p=0&rf=134239635&nrf=255&lm=0&tsrc=0&ver=3"}
+wait {duration 20}
+}

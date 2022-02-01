@@ -1,0 +1,50 @@
+adapted from https://github.com/beltoforion/kalstar/blob/master/kalstar.py
+doc at https://stellarium.org/doc/0.20/
+
+convert screenshots to video with
+  for x in `seq -f %03.0f 0 999`; do mv frame_$x.png frame_0$x.png; done
+  ffmpeg -f image2 -r 25 -i frame_%4d.png outfile.mp4
+  (25 = frames per second)
+
+
+crossfade title sequence with main video by:
+  ffmpeg -i blank.mp4 -i test.mp4 -filter_complex xfade=offset=5:duration=5 output.mp4
+  -- not implemented in my version of ffmpeg!
+  -- actually works fine as long as the framerates match
+  see https://superuser.com/questions/778762/crossfade-between-2-videos-using-ffmpeg
+    for other suggestions
+
+create blank video for testing crossfades/subtitles/etc:
+  ffmpeg -f lavfi -i color=#373952:s=1920x1080:d=10,format=rgb24 blank.mp4
+  # some sources add "-f matroska" before the output filename, but this seems to mess up the timebase and makes crossfades impossible
+
+add subtitles with
+  ffmpeg -i input.mp4 -vf subtitles=subtitletest.srt output.mp4
+  see https://stackoverflow.com/questions/57869367/ffmpeg-subtitles-alignment-and-position
+  http://ffmpeg.org/ffmpeg-filters.html#subtitles
+  https://ubuntuforums.org/showthread.php?t=2328454 on setting colour
+  https://en.wikipedia.org/wiki/SubStation_Alpha includes list of style parameters
+
+  Use ASS not SRT file for fade in/out?
+  Examples at https://hhsprings.bitbucket.io/docs/programming/examples/ffmpeg/subtitle/ass.html#simple-example
+  Documentation:
+    http://docs.aegisub.org/3.2/ASS_Tags/
+    http://moodub.free.fr/video/ass-specs.doc
+
+  ffmpeg -i blank.mp4 -vf "subtitles=subtitletest.srt:force_style='Alignment=6,Fontsize=24,PrimaryColour=&H80888888,Outline=0'" text.mp4
+  &H00 is zero transparency; next 6 chars are BGR colour not RGB!
+  BorderStyle=3 puts a rectangle behind the subtitles
+  Outline=0 gets rid of the outline
+
+  ffmpeg -i blank.mp4 -vf "subtitles=English.srt:force_style='Fontsize=24'" text1.mp4
+  ffmpeg -i text1.mp4 -vf "subtitles=Russian.srt:force_style='Alignment=6,Fontsize=24'" text2.mp4
+  
+testing:
+  
+  ffmpeg -f lavfi -i color=#373952:s=1920x1080:d=8,format=rgb24 -r 20 blank.mp4
+  ffmpeg -i output.mp4 -vf "subtitles=English.srt:force_style='Fontsize=24,PrimaryColour=&H80888888,Outline=0'" text1.mp4
+  ffmpeg -i text1.mp4 -vf "subtitles=Russian.srt:force_style='Alignment=6,Fontsize=24,PrimaryColour=&H80888888,Outline=0'" text2.mp4
+  ffmpeg -i text2.mp4 -i /home/alex/midi/2020-05-rach_lullaby/input.mp3 -c copy -map 0:v:0 -map 1:a:0 draft.mp4
+
+testing 2
+  ffmpeg -i output.mp4 -vf "subtitles=translation_subtitles.ass" text.mp4
