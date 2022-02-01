@@ -3,6 +3,8 @@ import pygame, sys, subprocess, os, time, mido
 from pygame.locals import *
 from moviepy.editor import *
 
+# Use python2 not python3 so that we can use execfile below (ugly but convenient!)
+
 MODE = 'play' # Display the animation on screen in real time
 #MODE = 'save' # Save the output to a video file instead of displaying on screen
 
@@ -25,7 +27,7 @@ LINEWIDTH = 1 # thickness of the circle outline in pixels
 # nb with width>2 there's obvious cropping at the bottom and right of each note:
 # not sure why, maybe a pygame bug??
 
-HEIGHT = 720
+HEIGHT = 1080 # nb near the end, set fontsize=45 if HEIGHT=1080, or 30 if 720
 WIDTH = int(HEIGHT * 16/9)
 NOTEHEIGHT  = HEIGHT / (HIGHEST_NOTE - LOWEST_NOTE + 1)
 
@@ -44,7 +46,13 @@ YELLOW = (255, 255, 0)
 NOTE_COLOURS = (WHITE, GREEN, BLUE, YELLOW, MAGENTA, CYAN, RED)
 
 # from settings.brahms_op118_6 import *
-execfile("settings/brahms_op118_6.py")
+#execfile("settings/brahms_op118_6.py")
+execfile("settings/brahms_op117.py")
+#LENGTH=40 # for testing
+#AUDIO_OFFSET = 0
+#MIDI_OFFSET = 0
+#titletext=" "
+
 
 NUM_COLOURS = len(NOTE_COLOURS)
 
@@ -181,8 +189,8 @@ def make_frame(t, draw_function):
       # pymovie swaps the x and y coordinates, so we need to flip the surface back
       return pygame.surfarray.array3d(
         pygame.transform.rotate(
-	  pygame.transform.flip(screen, True, False), 90
-	)
+          pygame.transform.flip(screen, True, False), 90
+        )
       )
     #pygame.draw.line(screen, WHITE, (WIDTH/2,0), (WIDTH/2, HEIGHT))
     # Uncomment the line above to get a "now time" line drawn on the animation
@@ -202,7 +210,7 @@ if MODE == 'play':
   while running:
     for event in pygame.event.get():
       if event.type == QUIT:
-	running = False
+        running = False
 
     t = pygame.time.get_ticks()/1000
     if (not audioPlaying) and t > AUDIO_OFFSET:
@@ -219,8 +227,8 @@ if MODE == 'play':
 else:
   # Edit the audio track: add silence at start and trim to the correct length
   os.system('/usr/bin/sox '+ WAV_FILE_ORIGINAL + ' ' + WAV_FILE_TEMP +
-  	    ' pad '+str(AUDIO_OFFSET) + ' trim 0 ' + str(LENGTH)
-	   )
+              ' pad '+str(AUDIO_OFFSET) + ' trim 0 ' + str(LENGTH)
+           )
 
   animation_clip = VideoClip(lambda t: make_frame(t, draw_bubble),
                              duration=LENGTH)
@@ -228,7 +236,7 @@ else:
      titletext, # from settings import
     #font='Segoe-Script-Regular', fontsize = 30, color = 'white'
     # font has been renamed since I last did this, it's still the same font!
-    font='Segoe-Script', fontsize = 30, color = 'white'
+    font='Segoe-Script', fontsize = 45, color = 'white'
   )
   titles = titles.set_pos('center').set_duration(7.5).fadein(3).fadeout(2.5)
   audio = AudioFileClip(WAV_FILE_TEMP)

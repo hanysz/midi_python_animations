@@ -3,6 +3,7 @@ import pygame, sys, subprocess, os, time, mido, math
 from pygame.locals import *
 from pygame import gfxdraw
 from moviepy.editor import *
+from operator import attrgetter # for sorting the allnotes array by attribute
 
 # Left piano: channel 16=accent, channel 1=normal, channel 2=middle section
 # Right piano: channel 13=accent, channel 7=normal, channel 4=middle section
@@ -13,14 +14,14 @@ from moviepy.editor import *
 #   fix glitches in MIDI file (doesn't affect this code but still needs doing)
 #   remove anything that says "for testing"
 
-MODE = 'play' # Display the animation on screen in real time
+#MODE = 'play' # Display the animation on screen in real time
 MODE = 'save' # Save the output to a video file instead of displaying on screen
 
 FPS = 30 # frames per second for saved video output
 
 ONSCREEN_TIME = 12 # number of seconds for a note to cross the screen
 INNER_BRIGHTNESS = 0.9 # brightness of the middle of the note when lit up
-FADEOUT_TIME = 3 # number of seconds for a note to stop being lit after it's stopped sounding
+FADEOUT_TIME = 5 # number of seconds for a note to stop being lit after it's stopped sounding
 LINEWIDTH = 1 # thickness of the circle outline in pixels
 # nb with width>2 there's obvious cropping at the bottom and right of each note:
 # not sure why, maybe a pygame bug??
@@ -28,8 +29,8 @@ LINEWIDTH = 1 # thickness of the circle outline in pixels
 HEIGHT = 1080 # nb near the end, set fontsize=45 if HEIGHT=1080, or 30 if 720
 TEXTSIZE = 45
 
-HEIGHT=800 # for testing
-TEXTSIZE = 33
+#HEIGHT=800 # for testing
+#TEXTSIZE = 33
 WIDTH = int(HEIGHT * 16/9)
 
 
@@ -38,13 +39,15 @@ BLACK = (0, 0, 0)
 
 LEFT_COL = (3, 228, 247) # acqua for left channel
 RIGHT_COL = (5, 225, 12) # sea-green for right channel
+LEFT_HIGHLIGHT = (150, 246, 255) # blue-tinted white for left channel accents
+RIGHT_HIGHLIGHT = (180, 255, 200) # green-tinted for right
 WHITE = (255, 255, 255)
-BACKGROUND = (0, 0, 30) # dark blue for a deep watery K
+BACKGROUND = (0, 0, 15) # dark blue for a deep watery K
 
 
 
-MIDI_FILE = '/home/alex/midi/K/2021-01-20-K_v03.mid'
-WAV_FILE_ORIGINAL = '/home/alex/midi/K/K_v03.wav'
+MIDI_FILE = '/home/alex/midi/K/2021-01-23-K_v04.mid'
+WAV_FILE_ORIGINAL = '/home/alex/midi/K/K_v04.wav'
 WAV_FILE_TEMP = '/tmp/animation_audio.wav' # temporary store for padded version of audio
 LENGTH = 714 # length of the video file to be generated, in seconds
 AUDIO_OFFSET = 8.0 # number of seconds late to start the audio
@@ -86,7 +89,8 @@ class Note(object):
     answer = 'Note number ' + str(self.note)
     answer += ' time ' + str(self.t0) + '-' + str(self.t1)
     answer += '; vel ' + str(self.vel) + ', track ' + str(self.track)
-    answer += ', ch' + str(self.channel)
+    answer += ', ch ' + str(self.channel)
+    answer += ', shape ' + str(self.shape)
     return answer
 
 def draw_shape(x, y, radius, shape, incol, outcol, filled):
@@ -128,7 +132,10 @@ def draw_bubble(n, t):
     outline_fade = 1
   #outcol = NOTE_COLOURS[n.track % NUM_COLOURS]
   if n.channel in [12,15]: #accented notes
-    outcol = WHITE
+    if n.track==1: # left piano
+      outcol = LEFT_HIGHLIGHT
+    else:
+      outcol = RIGHT_HIGHLIGHT
   elif n.track==1: #left piano
     outcol = LEFT_COL
   else:
@@ -235,11 +242,13 @@ for tracknum in [0] + TRACK_ORDER: # always include track 0 because it's the tem
     if isKeyUp(e):
       addToNotes(e, abstime * seconds_per_tick)
 
+# At this stage, notes are sorted by track then by *end* time
+# To assign shapes for K, we need them sorted by start time
+allnotes.sort(key=attrgetter('track', 't0'))
+
 # Assign shapes to accented notes, i.e. channels 13 and 16
 # Shape = number of notes between accented notes
 #  e.g. where every 5th note is accented, we want shape=5
-# Work backwards, because if we have groups of 3, 3, 3, 4, 4
-#  then the *first* note of the 4 must have shape = 4 not 3
 gap = 1
 for n in allnotes:
   if n.channel in [12, 15]:
@@ -251,8 +260,10 @@ for n in allnotes:
     else:
       n.shape=gap
     gap = 1 # reset counter each time we assign a shape
+    #print(n) # for debugging
   else:
     gap += 1
+    #print(str(n.t0) + ' ' + str(n.vel) + ' ' + str(n.channel)) # for debugging
 
 
 # At this point we have an allnotes array and can start to animate it.
