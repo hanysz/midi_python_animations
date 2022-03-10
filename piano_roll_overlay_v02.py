@@ -5,10 +5,7 @@ from __future__ import division # so that a/b for integers evaluates as floating
 # (typically the background file would be the theme repeated,
 #   and the foreground file has the variations)
 
-# To do:
-#   add 12 seconds of silence to end of Haydn audio!
-#   quantise note start times to fit pixel grid, to avoid jitter
-#     or better implement by rounding coordinate offsets to a whole number of pixels?
+# v2: add fade in and fade out for each page
 
 import pygame, sys, subprocess, os, time, mido
 from pygame.locals import *
@@ -16,17 +13,18 @@ from moviepy.editor import *
 from bisect import bisect_left
 
 MODE = 'play' # Display the animation on screen in real time
-#MODE = 'save' # Save the output to a video file instead of displaying on screen
+MODE = 'save' # Save the output to a video file instead of displaying on screen
 
 LOWEST_NOTE = 25 # midi note number of the bottom of the screen
 HIGHEST_NOTE = 108
 #COLOUR_MODE = "track" # assign colours based on track number
-COLOUR_MODE = "channel"
+#COLOUR_MODE = "channel"
+# mode is assigned in settings file
 
 FPS = 25 # frames per second for saved video output
 #FPS = 15 # for a fast cut of the video
 
-HEIGHT = 1024
+HEIGHT = 1080
 #HEIGHT = 397 # for a fast cut of the video
 WIDTH = int(HEIGHT * 16/9)
 CENTRE = (WIDTH/2, HEIGHT/2)
@@ -61,7 +59,9 @@ exec(compile(open(settings_file).read(), settings_file, 'exec'))
 SCROLL_OFFSET = SCROLL_TIME - PAGE_STARTS[-2]
 # time from start of last page to start of scrolling
 
-NOTE_HEIGHT = HEIGHT / (HIGHEST_NOTE - LOWEST_NOTE + 1)
+NOTE_HEIGHT = HEIGHT / (HIGHEST_NOTE - LOWEST_NOTE + 1) *0.9
+# *0.9 for gap between notes that are a semitone apart;
+# otherwise you just get a big continuous blob
 
 class Note(object):
   __slots__ = ['note', 't0', 't1', 'vel', 'track', 'channel']
@@ -77,6 +77,10 @@ class Note(object):
     answer += '; vel ' + str(self.vel) + ', track ' + str(self.track)
     answer += ', ch' + str(self.channel)
     return answer
+
+
+def blend(colour1, colour2, mix):
+  return([x*(1-mix) + y*mix for x, y in zip(colour1, colour2)])
 
 
 def draw_note(n, t, foreground):
@@ -104,13 +108,18 @@ def draw_note(n, t, foreground):
     t = t-(pixel_offset/WIDTH)*page_width
     page_times = (t-SCROLL_OFFSET, t-SCROLL_OFFSET+page_width)
 
+  fade_in  = min((t-page_times[0])/FADE_TIME, 1)
+  fade_out = min((page_times[1]-t)/FADE_TIME, 1)
+  fade = min(fade_in, fade_out)**2 # square so it spends more time near zero
+
   if not foreground:
     x0_bg = (n.t0-page_times[0])/page_width*WIDTH
     x1_bg = (n.t1-page_times[0])/page_width*WIDTH
     y0 = (HIGHEST_NOTE - n.note) / (HIGHEST_NOTE - LOWEST_NOTE + 1) * HEIGHT
     note_bg = pygame.Rect(x0_bg, y0, x1_bg-x0_bg, NOTE_HEIGHT)
    
-    col = BG_COLOUR
+    col = blend(BG_COLOUR, BACKGROUND, 1-fade)
+
     pygame.draw.rect(screen, col, note_bg)
 
   if foreground and t>n.t0:
@@ -125,6 +134,7 @@ def draw_note(n, t, foreground):
       col = FG_COLOURS[n.track]
     else:
       col = FG_COLOURS[n.channel]
+    col = blend(col, BACKGROUND, 1-fade)
     pygame.draw.rect(screen, col, note_fg)
 
 
@@ -225,7 +235,7 @@ if MODE == 'play':
     if (not audioPlaying) and t > AUDIO_OFFSET:
       audioplayer = subprocess.Popen(["/usr/bin/aplay", WAV_FILE_ORIGINAL])
       audioPlaying = True
-    make_frame(t)
+    make_frame(t+370)
     pygame.display.update()
 
   audioplayer.kill()
@@ -241,7 +251,7 @@ else:
 
   animation_clip = VideoClip(make_frame, duration=LENGTH)
   titles = TextClip(TITLE_TEXT,
-    font='Segoe-Script', fontsize = 30, color = 'white'
+    font='Segoe-Script', fontsize = 45, color = 'white'
   )
   titles = titles.set_pos('center').set_duration(8.5).fadein(3, BACKGROUND).fadeout(2.5, BACKGROUND)
   #titles = titles.set_pos('center').set_duration(5).fadein(1).fadeout(1)
