@@ -53,10 +53,11 @@ BACKGROUND = BLACK
 #execfile("settings/brahms_op118_6.py")
 #execfile("settings/brahms_op117.py")
 from settings.brahms_op117 import *
-LENGTH=40 # for testing
-AUDIO_OFFSET = 0
-MIDI_OFFSET = 0
-titletext = " "
+#from settings.schoenberg_op19 import *
+#LENGTH=40 # for testing
+#AUDIO_OFFSET = 0
+#MIDI_OFFSET = 0
+#titletext = " "
 
 NUM_COLOURS = len(NOTE_COLOURS)
 
