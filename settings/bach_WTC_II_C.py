@@ -1,10 +1,10 @@
 OUTPUT_FILE = '/home/alex/midi/python_animations/bach_wtc2_C.mp4'
-MIDI_FILE = '/home/alex/midi/magenta_transcriptions/01-bach-Cmaj-II-edited.mid'
-WAV_FILE_ORIGINAL = '/home/alex/midi/magenta_transcriptions/01-bach-Cmaj-II.wav'
+MIDI_FILE = '/home/alex/midi/magenta_transcriptions/01-bach-Cmaj-II-theme_highlighted.mid'
+WAV_FILE_ORIGINAL = '/home/alex/midi/magenta_transcriptions/01-bach-Cmaj-II_noise_reduced.wav'
 LENGTH = 244 # length of the video file to be generated, in seconds
 
 AUDIO_OFFSET = 8 # number of seconds late to start the audio
-MIDI_OFFSET = 8 # number of seconds to shift midi events by
+MIDI_OFFSET = 7.92 # number of seconds to shift midi events by
 WAV_FILE_TEMP = '/tmp/animation_audio.wav' # temporary store for padded version of audio
 
 TRACK_ORDER = [1,2,3,4,5,6,7,8,9]
