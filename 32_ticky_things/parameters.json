@@ -1,0 +1,11 @@
+{
+  "random_seed": 42,
+  "length": 410,
+  "rampup": 180,
+  "rampdown": 120,
+  "min_speed": 20,
+  "max_speed": 150,
+  "colour_list": "/home/alex/midi/32_ticky_things/good_colours.txt",
+  "sample_dir": "/home/alex/midi/32_ticky_things/samples",
+  "num_samples": 32
+}
