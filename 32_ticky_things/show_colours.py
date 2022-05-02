@@ -36,6 +36,7 @@ MAX_TEMPO = max(TEMPI)
 MIN_TEMPO = min(TEMPI)
 
 HEIGHT=900
+HEIGHT=600
 WIDTH = int(HEIGHT * 16/9)
 MIN_DURATION = 0.5 # shortest visual note
 
